@@ -1,4 +1,7 @@
 git_ignore
-/links.db
 /.vscode
-dl_files
+/dl_files
+/__pycache__
+
+*links.db
+*config.py
