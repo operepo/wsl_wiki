@@ -2,3 +2,4 @@ pdfkit
 sqlitedict
 pymysql
 requests
+wkhtmltopdf
