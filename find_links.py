@@ -7,6 +7,7 @@ import shutil
 import re
 import pdfkit
 import pdb
+import platform
 
 from sqlitedict import SqliteDict
 import pymysql.cursors
@@ -16,11 +17,6 @@ import config as cfg
 
 def get_app_path():
     return os.path.abspath(os.path.dirname(__file__))
-
-
-pdf_config = pdfkit.configuration(
-    wkhtmltopdf=os.path.join(get_app_path(), "wkhtmltopdf.exe")
-)
 
 
 def get_file_name_from_cd_header(cd_header):
@@ -61,6 +57,13 @@ def download_file(url, local_path):
                     f.write(chunk)
                     # f.flush()
     return extension
+
+
+if platform.system() == "Windows":
+    # set path to local copy of wkhtmltopdf.exe if on Windows machine
+    pdf_config = pdfkit.configuration(
+        wkhtmltopdf=os.path.join(get_app_path(), "wkhtmltopdf.exe")
+    )
 
 
 # Local db connection with list of links
@@ -139,11 +142,8 @@ with mysqldb.cursor() as cursor:
                 linkdb[key] = hash + extension
 
             # Update mysql database with new link
-            new_url = cfg.mysql["url"] + "dl_files/" + hash + extension
-            # sql = "UPDATE externallinks SET el_to=%s WHERE el_to=%s"
-            # cursor.execute(sql, (new_url ,k_url))
-            # mysqldb.commit()
-            sql = "UPDATE text SET old_text=REPLACE(old_text, %s, %s)"
+            new_url = cfg.wiki["url"] + "dl_files/" + hash + extension
+            sql = "UPDATE text SET old_text=REPLACE(old_text, %s, %s);"
             cursor.execute(sql, (k_url, new_url))
             mysqldb.commit()
         except Exception as ex:
@@ -160,7 +160,7 @@ with mysqldb.cursor() as cursor:
 
     for row in rows:
         title = row["page_title"].decode("utf-8")
-        url = cfg.mysql["url"] + "index.php/" + title
+        url = cfg.wiki["url"] + "index.php/" + title
         params = dict()
         params["action"] = "purge"
         # Purge the page to make it refresh from the database
