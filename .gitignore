@@ -2,6 +2,9 @@ git_ignore
 /.vscode
 /dl_files
 /__pycache__
+/tmp
 
 *links.db
 *config.py
+test.py
+config.pyc
