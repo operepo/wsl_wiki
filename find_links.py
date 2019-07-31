@@ -10,7 +10,6 @@ import pdb
 import platform
 
 from sqlitedict import SqliteDict
-import pymysql.cursors
 import pymysql
 import config as cfg
 
@@ -31,16 +30,11 @@ def get_file_name_from_cd_header(cd_header):
 
 def download_file(url, local_path):
     local_file_name = local_path
-    # print("   " + url + " -- " + local_path)
-    # pdb.set_trace()
-
-    # r = requests.head to get header information, check if changed and then pull
-
     r = requests.get(url, stream=True, allow_redirects=True)
     if r.status_code == 404:
         print(" ---- 404 URL Not Found: " + url)
         return None
-    fname = get_file_name_from_cd_header(r.headers.get("content-disposition"))
+    # fname = get_file_name_from_cd_header(r.headers.get("content-disposition"))
     content_type = r.headers.get("content-type")
     extension = ".html"
     if "text/html" in content_type:
@@ -59,8 +53,8 @@ def download_file(url, local_path):
     return extension
 
 
+# set path to local copy of wkhtmltopdf.exe if on Windows machine
 if platform.system() == "Windows":
-    # set path to local copy of wkhtmltopdf.exe if on Windows machine
     pdf_config = pdfkit.configuration(
         wkhtmltopdf=os.path.join(get_app_path(), "wkhtmltopdf.exe")
     )
@@ -88,13 +82,13 @@ with mysqldb.cursor() as cursor:
     cursor.execute(sql)
     rows = cursor.fetchall()
 
+    # iterate through externallinks, add to linkdb if new
     for row in rows:
         k = row["el_to"]
         if k not in linkdb:
             print("Found new link... {0}".format(k))
             linkdb[k] = ""
 
-        # print(" To {0} Index {1}".format(row["el_to"], row["el_index"]))
     linkdb.commit()
 
     # Now download each file
@@ -104,32 +98,34 @@ with mysqldb.cursor() as cursor:
     except:
         pass
 
-    link_count = len(linkdb)
-
     link_index = 0
+
     # See if each file exists in the dl_path
     for key, value in linkdb.iteritems():
         link_index += 1
         try:
             k_url = key.decode("utf-8")
             v = value
+
             if k_url == "":
-                print("URL Missing: " + k_url)
+                print("URL Missing: %s." % k_url)
                 continue
 
             if len(v) > 10:
-                print("File already downloaded: " + k_url)
+                print("File already downloaded: %s." % k_url)
                 continue
 
-            print("Downloading File: " + str(link_index) + "  " + k_url)
             tmp_file = os.path.join(base_dl_path, "tmp_dl")
 
+            print("Downloading File: %s to %s." % (k_url, tmp_file))
             extension = download_file(k_url, tmp_file)
             if extension is None:
                 # Unable to dl file, move to next one
                 continue
+
             # Calculate tmp file hash
             h = hashlib.sha1()
+
             with open(tmp_file, "rb") as f:
                 chunk = f.read(65535)
                 if not chunk:
@@ -137,12 +133,15 @@ with mysqldb.cursor() as cursor:
                 h.update(chunk)
             hash = h.hexdigest()
             final_path = os.path.join(base_dl_path, hash + extension)
+
             shutil.copyfile(tmp_file, final_path)
+
             if hash != "":
                 linkdb[key] = hash + extension
 
             # Update mysql database with new link
             new_url = cfg.wiki["url"] + "dl_files/" + hash + extension
+
             sql = "UPDATE text SET old_text=REPLACE(old_text, %s, %s);"
             cursor.execute(sql, (k_url, new_url))
             mysqldb.commit()
