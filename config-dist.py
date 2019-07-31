@@ -6,5 +6,5 @@ mysql = {
     "pass": "pass",
 }
 
-config = {"url": "http://localhost/wiki"}
+wiki = {"url": "http://localhost/wiki"}
 
