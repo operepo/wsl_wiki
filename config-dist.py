@@ -6,5 +6,4 @@ mysql = {
     "pass": "pass",
 }
 
-wiki = {"url": "http://localhost/wiki"}
-
+wiki = {"url": "http://localhost/", "path": "/var/www/html/"}

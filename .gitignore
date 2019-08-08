@@ -4,7 +4,7 @@ git_ignore
 /__pycache__
 /tmp
 
-*links.db
-*config.py
+links.db
+config.py*
 test.py
-config.pyc
+*.log
