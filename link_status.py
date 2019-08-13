@@ -5,7 +5,8 @@ import sys
 from ThreadPool import ThreadPool
 
 log_filename = "url_status.log"
-timeout = 0.01
+timeout = 10.00
+pool = ThreadPool(8)
 
 
 def check_url(url):
@@ -59,7 +60,6 @@ def output_status(url, status, error=""):
 
 
 mysqldb = get_wikidb()
-pool = ThreadPool(8)
 with mysqldb.cursor() as cursor:
     externallinks = get_externallinks(cursor)
 

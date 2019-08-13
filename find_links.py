@@ -15,6 +15,7 @@ from ThreadPool import ThreadPool
 # Global variables
 dl_path = ""
 # thread_pool = ThreadPool(4)
+timeout=30.00 # Allows 30 seconds for page load/timeout
 
 
 def download_file(url, local_path):
@@ -25,7 +26,7 @@ def download_file(url, local_path):
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36"
         }
         r = requests.get(
-            url, stream=True, allow_redirects=True, headers=headers, timeout=5.0
+            url, stream=True, allow_redirects=True, headers=headers, timeout=timeout
         )
         if r.status_code == 404:
             print(" ---- 404 URL Not Found: " + url)
