@@ -15,13 +15,12 @@ from ThreadPool import ThreadPool
 # Global variables
 dl_path = ""
 # thread_pool = ThreadPool(4)
-timeout=30.00 # Allows 30 seconds for page load/timeout
+timeout = 30.00  # Allows 30 seconds for page load/timeout
 
 
 def download_file(url, local_path):
     try:
-        print("Downloading File: %s." % (url))
-        local_file_name = local_path
+        print("Downloading File: %s to %s." % (url, local_path))
         headers = {
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36"
         }
@@ -34,14 +33,15 @@ def download_file(url, local_path):
                 print(url, file=f)
             return None
         content_type = r.headers.get("content-type")
-        extension = ".html"
+        extension = None
         if "text/html" in content_type:
             # Use pdfkit to get a pdf version of the page
-            pdfkit.from_url(url, local_path)
+            options = {"log-level": "error"}
+            pdfkit.from_url(url, local_path, options=options)
             extension = ".pdf"
         elif "/pdf" in content_type:
             extension = ".pdf"
-            with open(local_file_name, "wb") as f:
+            with open(local_path, "wb") as f:
                 for chunk in r.iter_content(chunk_size=1024):
                     if chunk:  # filter out keep-alive empty chunks
                         f.write(chunk)
@@ -117,6 +117,8 @@ def find_links():
 
                 # Update mysql database with new link
                 new_url = cfg.wiki["url"] + "dl_files/" + hash + extension
+
+                print("File download complete: %s to %s" % (k_url, new_url))
 
                 sql = "UPDATE text SET old_text=REPLACE(old_text, %s, %s);"
                 cursor.execute(sql, (k_url, new_url))
