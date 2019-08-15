@@ -81,14 +81,13 @@ def find_links():
         # See if each file exists in the dl_path
         for key, value in linkdb.iteritems():
             k_url = key.decode("utf-8")
-            v = value
 
             try:
                 if k_url == "":
                     print("URL Missing: %s." % k_url)
                     continue
 
-                if len(v) > 10:
+                if len(value) > 10:
                     print("File already downloaded: %s." % k_url)
                     continue
 
