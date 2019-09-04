@@ -54,14 +54,16 @@ def main():
 
         thread_pool.add_task(get_docs, key, value)
 
+    # Wait for all threads to finish before clean-up
     thread_pool.wait_completion()
+
     purge_pages()
     linkdb.commit()
     cleanup_files()
     
     linkdb.close()
     wikidb.close()
-    print("Complete. Files downloaded to " + dl_path)
+    print("Complete\nErrors have been logged in errors.log\nFiles downloaded to " + dl_path)
 
 
 def cleanup_files():
@@ -159,11 +161,8 @@ def get_docs(url, old_hash):
         ]
         sql = "UPDATE text SET old_text=REPLACE(old_text, %s, %s);"
         
-        result = mysqldb.cursor().executemany(sql, data)
+        mysqldb.cursor().executemany(sql, data)
         
-        with open("db.log", "a") as d:
-            print("Number of rows affected by statement: %d - %s : %s" % (result, url, new_url), file=d)
-
         mysqldb.commit()
         print("Downloaded %s to %s" % (url, new_url))
     except Exception as ex:
